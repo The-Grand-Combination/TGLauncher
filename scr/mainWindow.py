@@ -107,8 +107,14 @@ class GameLauncher(QWidget):
     def preset_manager(self):
         """Opens the preset manager dialog."""
         dialog = PresetManagerDialog(self.get_checked_mods(), self.settings_file, parent=self)
+        
         if dialog.exec():
             self.checked_mods = dialog.checked_mods
+            self.set_checked_mods(self.checked_mods)  # Apply the preset to the tree
+            
+            # Update the user_dir based on the newly checked mods
+            self.get_checked_mods()  # This will update the user_dir based on the checked mods
+            
             self.saveSettings()  # Save the new preset
 
     def open_about_dialog(self):
