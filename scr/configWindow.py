@@ -1,5 +1,6 @@
 import os
 import re
+import shutil
 
 class SettingsManager:
     def __init__(self, settings_file):
@@ -38,58 +39,57 @@ class SettingsManager:
         return self.settings.get(key, default)
 
     def create_default_settings(self):
-        """Creates the settings file with default values."""
         default_settings = """gui=
-{
-language=l_english
-}
-graphics=
-{
-size=
-{
-    x=1920
-    y=1080
-}
+            {
+            language=l_english
+            }
+            graphics=
+            {
+            size=
+            {
+                x=1920
+                y=1080
+            }
 
-refreshRate=60
-fullScreen=no
-borderless=yes
-shadows=no
-shadowSize=2048
-multi_sampling=0
-anisotropic_filtering=0
-gamma=50.000000
-}
-sound_fx_volume=100.000000
-music_volume=100.000000
-scroll_speed=50.000000
-camera_rotation_speed=50.000000
-zoom_speed=50.000000
-mouse_speed=50.000000
-master_volume=100.000000
-ambient_volume=50.000000
-mapRenderingOptions=
-{
-renderTrees=yes
-onmap=yes
-simpleWater=no
-counter_distance=300.000000
-text_height=300.000000
-sea_text_alpha=120
-details=1.000
-}
-lastplayer="Player"
-lasthost=""
-serveradress="diplomacy.valkyrienet.com"
-debug_saves=0
-autosave="YEARLY"
-simple=no
-categories=
-{
-1 1 1 1 1 1 }
-update_time=1.000000
-shortcut=yes
-"""
+            refreshRate=60
+            fullScreen=no
+            borderless=yes
+            shadows=no
+            shadowSize=2048
+            multi_sampling=0
+            anisotropic_filtering=0
+            gamma=50.000000
+            }
+            sound_fx_volume=100.000000
+            music_volume=100.000000
+            scroll_speed=50.000000
+            camera_rotation_speed=50.000000
+            zoom_speed=50.000000
+            mouse_speed=50.000000
+            master_volume=100.000000
+            ambient_volume=50.000000
+            mapRenderingOptions=
+            {
+            renderTrees=yes
+            onmap=yes
+            simpleWater=no
+            counter_distance=300.000000
+            text_height=300.000000
+            sea_text_alpha=120
+            details=1.000
+            }
+            lastplayer="Player"
+            lasthost=""
+            serveradress="diplomacy.valkyrienet.com"
+            debug_saves=0
+            autosave="YEARLY"
+            simple=no
+            categories=
+            {
+            1 1 1 1 1 1 }
+            update_time=1.000000
+            shortcut=yes
+            """
         with open(self.settings_file, 'w') as file:
             file.write(default_settings)
 
@@ -102,7 +102,7 @@ from PyQt6.QtCore import Qt
 import os
 
 class ConfigDialog(QDialog):
-    def __init__(self, current_root, parent):
+    def __init__(self, current_root, parent, user_dir):
         super().__init__(parent)
         self.setWindowTitle("Configuration")
         self.setGeometry(400, 400, 400, 400)
@@ -116,6 +116,7 @@ class ConfigDialog(QDialog):
             self.user_dir,
             "settings.txt"
         )
+        self.user_dir = user_dir
         self.settings_manager = SettingsManager(self.settings_path)
         self.initUI()
 
@@ -123,6 +124,7 @@ class ConfigDialog(QDialog):
         main_layout = QVBoxLayout(self)
         layout = QFormLayout()
 
+        print(self.user_dir)
         # Game Root Folder
         self.root_label = QLabel("Game Root Folder:")
         self.root_display = QLineEdit(self.current_root)
@@ -201,6 +203,11 @@ class ConfigDialog(QDialog):
         self.debug_saves_checkbox.setChecked(self.settings_manager.get_setting("debug_saves", "0") == "1")
         layout.addRow(self.debug_saves_checkbox)
 
+        # Clean Cache
+        self.clean_cache_button = QPushButton("Clear Cache")
+        self.clean_cache_button.clicked.connect(self.clear_cache)
+        layout.addRow(self.clean_cache_button)
+
         # Buttons (OK, Cancel)
         button_layout = QHBoxLayout()
         self.ok_button = QPushButton("OK")
@@ -252,6 +259,36 @@ class ConfigDialog(QDialog):
         folder = QFileDialog.getExistingDirectory(self, "Select Game Root Folder", self.current_root)
         if folder:
             self.root_display.setText(folder)
+
+    def clear_cache(self):
+        cache_path = os.path.join(
+            os.path.expanduser("~"),
+            "Documents",
+            "Paradox Interactive",
+            "Victoria II",
+            self.user_dir
+        )
+        map_folder = os.path.join(cache_path, "map")
+        gfx_folder = os.path.join(cache_path, "gfx")
+        music_folder = os.path.join(cache_path, "music")
+
+        # Confirm deletion
+        confirm_msg = QMessageBox.question(
+            self,
+            "Clear Cache",
+            "Are you sure you want to delete the map, gfx, and music folders? This action cannot be undone.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+
+        print(cache_path)
+
+        if confirm_msg == QMessageBox.StandardButton.Yes:
+            for folder in [map_folder, gfx_folder, music_folder]:
+                if os.path.exists(folder):
+                    shutil.rmtree(folder)
+            print("Cache cleared.")
+        else:
+            print("Cache clear cancelled.")
 
     def get_new_root(self):
         return self.root_display.text()

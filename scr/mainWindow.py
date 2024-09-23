@@ -24,15 +24,14 @@ class GameLauncher(QWidget):
         self.initUI()
         self.load_mods()
         self.loadSettings()
-        self.user_dir = self.mod_user_dirs.get(self.get_checked_mods()[-1], "") if self.get_checked_mods() else ""
-
 
     def initUI(self):
         self.setWindowTitle('Game Launcher')
         self.setGeometry(300, 300, 300, 400)
 
         layout = QVBoxLayout()
-
+        
+        
         # Mod tree structure
         self.mod_tree = QTreeWidget()
         self.mod_tree.setHeaderLabels(['Mods'])
@@ -126,7 +125,7 @@ class GameLauncher(QWidget):
     
     def open_config_dialog(self):
         """Opens the configuration dialog."""
-        dialog = ConfigDialog(self.game_root, self)
+        dialog = ConfigDialog(self.game_root, self, self.user_dir)
         if dialog.exec():
             new_root = dialog.get_new_root()
             if new_root != self.game_root:
@@ -202,6 +201,7 @@ class GameLauncher(QWidget):
         self.mod_tree.expandAll()
         self.mod_tree.blockSignals(False)  # Re-enable signals
 
+
     def get_checked_mods(self):
         checked_mods = []
         last_user_dir_mod = None
@@ -221,7 +221,6 @@ class GameLauncher(QWidget):
         else:
             self.user_dir = ""
         return checked_mods
-
 
     def start_game(self):
         selected_mods = self.get_checked_mods()
@@ -253,6 +252,9 @@ class GameLauncher(QWidget):
             self.mod_tree.blockSignals(False)
 
     def loadSettings(self):
+        checked_mods = []
+        
+        # Load settings from the file if it exists
         if os.path.exists(self.settings_file):
             try:
                 with open(self.settings_file, 'r') as f:
@@ -261,33 +263,26 @@ class GameLauncher(QWidget):
                     self.game_root = settings.get('game_root', self.default_game_root)
             except Exception as e:
                 print(f"Error loading settings: {e}")
-                checked_mods = []
-        else:
-            checked_mods = []
-
+        
+        # Load mods into the tree
         self.load_mods()
-
+        
         # Apply checked mods
-        if os.path.exists(self.settings_file):
-            try:
-                with open(self.settings_file, 'r') as f:
-                    settings = json.load(f)
-                    checked_mods = settings.get('checked_mods', [])
-            except Exception as e:
-                print(f"Error reading checked mods from settings: {e}")
-                checked_mods = []
+        iterator = QTreeWidgetItemIterator(self.mod_tree, QTreeWidgetItemIterator.IteratorFlag.All)
+        self.mod_tree.blockSignals(True)  # Prevent signals during setup
+        while iterator.value():
+            item = iterator.value()
+            mod_name = item.text(0)
+            if mod_name in checked_mods:
+                item.setCheckState(0, Qt.CheckState.Checked)
+            else:
+                item.setCheckState(0, Qt.CheckState.Unchecked)
+            iterator += 1
+        self.mod_tree.blockSignals(False)  # Re-enable signals
+        
+        # Set the user_dir based on the checked mods at startup
+        self.get_checked_mods()  # This will update the user_dir based on the checked mods
 
-            iterator = QTreeWidgetItemIterator(self.mod_tree, QTreeWidgetItemIterator.IteratorFlag.All)
-            self.mod_tree.blockSignals(True)  # Prevent signals during setup
-            while iterator.value():
-                item = iterator.value()
-                mod_name = item.text(0)
-                if mod_name in checked_mods:
-                    item.setCheckState(0, Qt.CheckState.Checked)
-                else:
-                    item.setCheckState(0, Qt.CheckState.Unchecked)
-                iterator += 1
-            self.mod_tree.blockSignals(False)  # Re-enable signals
 
     def saveSettings(self):
         checked_mods = self.get_checked_mods()
@@ -306,5 +301,4 @@ class GameLauncher(QWidget):
                 json.dump(settings, f, indent=4)
             print("Settings saved successfully.")
         except Exception as e:
-            print(f"Error saving settings: {e}")
-      
+            print(f"Error saving settings: {e}")      
