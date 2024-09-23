@@ -136,16 +136,25 @@ class ConfigDialog(QDialog):
         layout.addRow(self.root_label, root_layout)
 
         # Screen Resolution
-        self.width_input = QLineEdit(self.settings_manager.get_setting("x"))
-        self.height_input = QLineEdit(self.settings_manager.get_setting("y"))
-        layout.addRow("Screen Width:", self.width_input)
-        layout.addRow("Screen Height:", self.height_input)
+        self.resolution_input = QComboBox()
+        self.resolution_input.addItem("3840x2160")
+        self.resolution_input.addItem("2560x1440")
+        self.resolution_input.addItem("1920x1080")
+        self.resolution_input.addItem("1600x900")
+        self.resolution_input.addItem("1366x768")
+        self.resolution_input.addItem("1280x720")
+        self.resolution_input.addItem("1024x600")
+        self.resolution_input.addItem("800x600")
+
+        self.resolution_input.setCurrentText(f"{self.settings_manager.get_setting('x')}x{self.settings_manager.get_setting('y')}")
+        layout.addRow("Screen Resolution:", self.resolution_input)
+
 
         # Fullscreen and Borderless
         self.fullscreen_checkbox = QCheckBox("Fullscreen")
-        self.fullscreen_checkbox.setChecked(self.settings_manager.get_setting("fullScreen", "no") == "yes")
+        self.fullscreen_checkbox.setChecked(self.settings_manager.get_setting("fullScreen") == "yes")
         self.borderless_checkbox = QCheckBox("Borderless")
-        self.borderless_checkbox.setChecked(self.settings_manager.get_setting("borderless", "yes") == "yes")
+        self.borderless_checkbox.setChecked(self.settings_manager.get_setting("borderless") == "yes")
         layout.addRow(self.fullscreen_checkbox)
         layout.addRow(self.borderless_checkbox)
 
@@ -153,34 +162,36 @@ class ConfigDialog(QDialog):
         self.master_volume_slider = QSlider(Qt.Orientation.Horizontal)
         self.master_volume_slider.setMinimum(0)
         self.master_volume_slider.setMaximum(100)
-        self.master_volume_slider.setValue(int(float(self.settings_manager.get_setting("master_volume", "100.000000"))))
+        self.master_volume_slider.setValue(int(float(self.settings_manager.get_setting("master_volume"))))
         layout.addRow("Master Volume:", self.master_volume_slider)
+
+        self.music_volume_slider = QSlider(Qt.Orientation.Horizontal)
+        self.music_volume_slider.setMinimum(0)
+        self.music_volume_slider.setMaximum(100)
+        self.music_volume_slider.setValue(int(float(self.settings_manager.get_setting("music_volume"))))
+        layout.addRow("Music Volume:", self.music_volume_slider)
 
         self.sound_fx_slider = QSlider(Qt.Orientation.Horizontal)
         self.sound_fx_slider.setMinimum(0)
         self.sound_fx_slider.setMaximum(100)
-        self.sound_fx_slider.setValue(int(float(self.settings_manager.get_setting("sound_fx_volume", "100.000000"))))
+        self.sound_fx_slider.setValue(int(float(self.settings_manager.get_setting("sound_fx_volume"))))
         layout.addRow("Sound FX Volume:", self.sound_fx_slider)
 
         self.music_volume_slider = QSlider(Qt.Orientation.Horizontal)
         self.music_volume_slider.setMinimum(0)
         self.music_volume_slider.setMaximum(100)
-        self.music_volume_slider.setValue(int(float(self.settings_manager.get_setting("music_volume", "100.000000"))))
-        layout.addRow("Music Volume:", self.music_volume_slider)
-
-        self.music_volume_slider = QSlider(Qt.Orientation.Horizontal)
-        self.music_volume_slider.setMinimum(0)
-        self.music_volume_slider.setMaximum(100)
-        self.music_volume_slider.setValue(int(float(self.settings_manager.get_setting("music_volume", "100.000000"))))
-        layout.addRow("Music Volume:", self.music_volume_slider)
+        self.music_volume_slider.setValue(int(float(self.settings_manager.get_setting("ambient_volume"))))
+        layout.addRow("Ambient Volume:", self.music_volume_slider)
 
         # Last Player
-        self.lastplayer_input = QLineEdit(self.settings_manager.get_setting("lastplayer", "Player"))
+        self.lastplayer_input = QLineEdit(self.settings_manager.get_setting("lastplayer"))
         layout.addRow("Player Name:", self.lastplayer_input)
 
         # Autosave
         self.autosave_input = QComboBox()
+        self.autosave_input.addItem("FIVE_YEAR")
         self.autosave_input.addItem("YEARLY")
+        self.autosave_input.addItem("HALFYEAR")
         self.autosave_input.addItem("MONTHLY")
         self.autosave_input.setCurrentText(self.settings_manager.get_setting("autosave", "YEARLY"))
         layout.addRow("Autosave Frequency:", self.autosave_input)
@@ -206,18 +217,19 @@ class ConfigDialog(QDialog):
 
     def save_settings(self):
         updated_settings = {
-            '	x': self.width_input.text(),
-            '	y': self.height_input.text(),
             'fullScreen': "yes" if self.fullscreen_checkbox.isChecked() else "no",
             'borderless': "yes" if self.borderless_checkbox.isChecked() else "no",
             'sound_fx_volume': f"{self.sound_fx_slider.value():.6f}",
             'music_volume': f"{self.music_volume_slider.value():.6f}",
             'master_volume': f"{self.master_volume_slider.value():.6f}",
+            'ambient_volume': f"{self.master_volume_slider.value():.6f}",
             'lastplayer': self.lastplayer_input.text(),
             'autosave': self.autosave_input.currentText(),
             'debug_saves': "1" if self.debug_saves_checkbox.isChecked() else "0",
+            '	x': self.resolution_input.currentText().split('x')[0],
+            '	y': self.resolution_input.currentText().split('x')[1],
         }
-
+        
         # Read the existing settings
         lines = []
         with open(self.settings_path, 'r') as file:
@@ -235,7 +247,6 @@ class ConfigDialog(QDialog):
             file.writelines(lines)
 
         self.accept()
-
 
     def browse_folder(self):
         folder = QFileDialog.getExistingDirectory(self, "Select Game Root Folder", self.current_root)
