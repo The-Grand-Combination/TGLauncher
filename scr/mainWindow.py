@@ -32,7 +32,7 @@ class GameLauncher(QWidget):
                 self.game_root = game_root
                 break
         if not self.game_root:
-            QMessageBox.critical(self, "Error", "Could not find the game executable.")
+            QMessageBox.critical(self, "Error", "Could not find the game executable. Place this launcher inside your Victoria 2 installation folder.")
             sys.exit(1)
         self.config_file = "launcher_configs.json"
         self.settings_file = os.path.join(self.game_root, "mod", self.config_file)
