@@ -312,7 +312,7 @@ class GameLauncher(QWidget):
                 with open(self.settings_file, 'r') as f:
                     settings = json.load(f)
                     checked_mods = settings.get('checked_mods', [])
-                    self.game_root = settings.get('game_root', self.default_game_root)
+                    self.game_root = settings.get('game_root', self.game_root)
             except Exception as e:
                 print(f"Error loading settings: {e}")
         
