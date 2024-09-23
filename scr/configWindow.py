@@ -1,5 +1,4 @@
 import os
-import re
 import shutil
 
 class SettingsManager:
@@ -96,7 +95,7 @@ class SettingsManager:
 
 from PyQt6.QtWidgets import (
     QHBoxLayout, QVBoxLayout, QDialog, QFormLayout, QLineEdit, QSlider,
-    QPushButton, QFileDialog, QLabel, QMessageBox, QCheckBox, QComboBox
+    QPushButton, QMessageBox, QCheckBox, QComboBox
 )
 from PyQt6.QtCore import Qt
 import os

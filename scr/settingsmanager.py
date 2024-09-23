@@ -1,3 +1,4 @@
+import os
 class SettingsManager:
     def __init__(self, settings_file):
         self.settings_file = settings_file
@@ -50,24 +51,24 @@ class SettingsManager:
     def create_default_settings(self):
         """Creates the settings file with default values."""
         default_settings = """[graphics]
-x=1920
-y=1080
-fullScreen=no
-borderless=yes
+                            x=1920
+                            y=1080
+                            fullScreen=no
+                            borderless=yes
 
-[sound]
-master_volume=50
-sound_fx_volume=50
-music_volume=50
+                            [sound]
+                            master_volume=50
+                            sound_fx_volume=50
+                            music_volume=50
 
-[gui]
-lastplayer=Player
+                            [gui]
+                            lastplayer=Player
 
-[general]
-debug_saves=0
-autosave=YEARLY
-update_time=1.000000
-"""
+                            [general]
+                            debug_saves=0
+                            autosave=YEARLY
+                            update_time=1.000000
+                            """
         with open(self.settings_file, 'w') as file:
             file.write(default_settings)
 
