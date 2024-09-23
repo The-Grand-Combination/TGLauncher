@@ -13,6 +13,7 @@ from scr.presetmanagerWindow import *
 
 class GameLauncher(QWidget):
     def __init__(self):
+
         super().__init__()
         self.mod_files = {}  # Dictionary to store {display_name: filename}
         self.mod_dependencies = {}  # Dictionary to store {mod_name: [dependencies]}
@@ -21,7 +22,10 @@ class GameLauncher(QWidget):
         self.game_root = self.default_game_root
         self.settings_file = os.path.join(self.game_root, "mod", self.config_file)
         self.initUI()
+        self.load_mods()
         self.loadSettings()
+        self.user_dir = self.mod_user_dirs.get(self.get_checked_mods()[-1], "") if self.get_checked_mods() else ""
+
 
     def initUI(self):
         self.setWindowTitle('Game Launcher')
@@ -86,25 +90,6 @@ class GameLauncher(QWidget):
         layout.addLayout(buttons_layout2)
 
         self.setLayout(layout)
-        
-    def open_save_folder(self):
-        mod_name = self.mod_tree.currentItem().text(0)
-        if mod_name in self.mod_user_dirs:
-            user_dir = self.mod_user_dirs[mod_name]
-            save_folder = os.path.join(
-                os.path.expanduser("~"),
-                "Documents",
-                "Paradox Interactive",
-                "Victoria II",
-                user_dir,
-                "save games"
-            )
-            if os.path.exists(save_folder):
-                subprocess.run(["explorer", "/select,", save_folder])
-            else:
-                print(f"Save folder does not exist: {save_folder}")
-        else:
-            print("No mod selected. Cannot open save folder.")
 
     def set_checked_mods(self, checked_mods):
         """Set the checked state of mods in the tree based on the provided list."""
@@ -137,6 +122,8 @@ class GameLauncher(QWidget):
         # TODO: Implement the about dialog
         print("About dialog not implemented yet.")
 
+
+    
     def open_config_dialog(self):
         """Opens the configuration dialog."""
         dialog = ConfigDialog(self.game_root, self)
@@ -217,6 +204,7 @@ class GameLauncher(QWidget):
 
     def get_checked_mods(self):
         checked_mods = []
+        last_user_dir_mod = None
         iterator = QTreeWidgetItemIterator(self.mod_tree, QTreeWidgetItemIterator.IteratorFlag.All)
         while iterator.value():
             item = iterator.value()
@@ -224,18 +212,26 @@ class GameLauncher(QWidget):
                 mod_name = item.text(0)
                 if mod_name in self.mod_files:
                     checked_mods.append(mod_name)
+                    if self.mod_user_dirs[mod_name]:
+                        last_user_dir_mod = mod_name
             iterator += 1
+        if last_user_dir_mod:
+            self.user_dir = self.mod_user_dirs[last_user_dir_mod]
+            print(f"User directory: {self.user_dir}")
+        else:
+            self.user_dir = ""
         return checked_mods
+
 
     def start_game(self):
         selected_mods = self.get_checked_mods()
         
         if selected_mods:
-            mod_files = [f"-mod={self.mod_files[mod]}" for mod in selected_mods]
+            mod_files = [f"-mod=mod/{self.mod_files[mod]}" for mod in selected_mods]
             mods_argument = " ".join(mod_files)
             command = f'cd "{self.game_root}" && v2game.exe {mods_argument}'
             print(f"Starting game with command: {command}")
-            #subprocess.run(command, shell=True)
+            subprocess.run(command, shell=True)
             self.saveSettings()
         else:
             print("No mods selected. Starting game without mods.")
