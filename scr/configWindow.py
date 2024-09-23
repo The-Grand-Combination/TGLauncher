@@ -125,17 +125,6 @@ class ConfigDialog(QDialog):
         layout = QFormLayout()
 
         print(self.user_dir)
-        # Game Root Folder
-        self.root_label = QLabel("Game Root Folder:")
-        self.root_display = QLineEdit(self.current_root)
-        self.root_display.setReadOnly(True)
-        self.browse_button = QPushButton("Browse")
-        self.browse_button.clicked.connect(self.browse_folder)
-
-        root_layout = QHBoxLayout()
-        root_layout.addWidget(self.root_display)
-        root_layout.addWidget(self.browse_button)
-        layout.addRow(self.root_label, root_layout)
 
         # Screen Resolution
         self.resolution_input = QComboBox()
