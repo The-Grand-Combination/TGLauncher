@@ -167,19 +167,13 @@ class GameLauncher(QWidget):
         # TODO: Implement the about dialog
         print("About dialog not implemented yet.")
 
-
-    
     def open_config_dialog(self):
         """Opens the configuration dialog."""
         dialog = ConfigDialog(self.game_root, self, self.user_dir)
         if dialog.exec():
-            new_root = dialog.get_new_root()
-            if new_root != self.game_root:
-                self.game_root = new_root
-                self.settings_file = os.path.join(self.game_root, "mod", self.config_file)
-                self.root_label.setText(f"Game Root: {self.game_root}")
-                self.load_mods()
-                self.saveSettings()  # Save the new game root
+            self.settings_file = os.path.join(self.game_root, "mod", self.config_file)
+            self.load_mods()
+            self.saveSettings()  # Save the new game root
 
     def load_mods(self):
         mod_folder = os.path.join(self.game_root, "mod")

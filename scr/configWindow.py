@@ -106,7 +106,6 @@ class ConfigDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Configuration")
         self.setGeometry(400, 400, 400, 400)
-        self.current_root = current_root
         self.user_dir = parent.user_dir
         self.settings_path = os.path.join(
             os.path.expanduser("~"),
@@ -244,11 +243,6 @@ class ConfigDialog(QDialog):
 
         self.accept()
 
-    def browse_folder(self):
-        folder = QFileDialog.getExistingDirectory(self, "Select Game Root Folder", self.current_root)
-        if folder:
-            self.root_display.setText(folder)
-
     def clear_cache(self):
         cache_path = os.path.join(
             os.path.expanduser("~"),
@@ -278,6 +272,3 @@ class ConfigDialog(QDialog):
             print("Cache cleared.")
         else:
             print("Cache clear cancelled.")
-
-    def get_new_root(self):
-        return self.root_display.text()
