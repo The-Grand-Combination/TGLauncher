@@ -2,11 +2,14 @@
 import os
 import json
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, 
+    QWidget, QVBoxLayout, QHBoxLayout, QMessageBox, QLabel,
     QPushButton, QTreeWidget, QTreeWidgetItem, QTreeWidgetItemIterator
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QUrl
 import subprocess
+
+from PyQt6.QtGui import QDesktopServices
+
 
 from scr.configWindow import *
 from scr.presetmanagerWindow import *
@@ -26,7 +29,7 @@ class GameLauncher(QWidget):
         self.loadSettings()
 
     def initUI(self):
-        self.setWindowTitle('Game Launcher')
+        self.setWindowTitle('The Greater Launcher')
         self.setGeometry(300, 300, 300, 400)
 
         layout = QVBoxLayout()
@@ -118,9 +121,46 @@ class GameLauncher(QWidget):
             self.saveSettings()  # Save the new preset
 
     def open_about_dialog(self):
-        """Opens the about dialog."""
-        # TODO: Implement the about dialog
-        print("About dialog not implemented yet.")
+        """Opens the about dialog with GitHub and Discord links."""
+        about_dialog = QDialog(self)
+        about_dialog.setWindowTitle("About TGLauncher")
+        about_dialog.setFixedSize(300, 200)
+
+        # Main layout (centered vertically and horizontally)
+        main_layout = QVBoxLayout(about_dialog)
+
+        # Create a label with rich text for clickable links, centered
+        about_text = QLabel(
+            "<h3 style='text-align: center;'>The Greater Launcher</h3>"
+            "<p style='text-align: center;'>Developed by the TGC Modding Team.</p>"
+            "<p style='text-align: center;'><a href='https://github.com/The-Grand-Combination/TGLauncher'>GitHub Repository</a><br>"
+            "<a href='https://discord.gg/the-grand-combination-689466155978588176'>Join us on Discord</a></p>"
+        )
+        about_text.setTextFormat(Qt.TextFormat.RichText)
+        about_text.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
+        about_text.setOpenExternalLinks(True)
+        about_text.setAlignment(Qt.AlignmentFlag.AlignCenter)  # Center the text
+
+        # Add the label to the main layout
+        main_layout.addWidget(about_text)
+
+        # Create a horizontal layout to center the OK button
+        button_layout = QHBoxLayout()
+        close_button = QPushButton("OK")
+        close_button.setFixedSize(80, 30)
+        close_button.clicked.connect(about_dialog.accept)
+
+        # Add the button to the button layout and center it
+        button_layout.addStretch()
+        button_layout.addWidget(close_button)
+        button_layout.addStretch()
+
+        # Add button layout to the main layout
+        main_layout.addLayout(button_layout)
+
+        about_dialog.exec()
+
+
 
     def check_for_updates(self):
         """Opens the about dialog."""
