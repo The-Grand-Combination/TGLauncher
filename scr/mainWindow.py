@@ -1,6 +1,7 @@
 
 import os
 import json
+import sys
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QMessageBox, QLabel,
     QPushButton, QTreeWidget, QTreeWidgetItem, QTreeWidgetItemIterator
@@ -20,9 +21,20 @@ class GameLauncher(QWidget):
         super().__init__()
         self.mod_files = {}  # Dictionary to store {display_name: filename}
         self.mod_dependencies = {}  # Dictionary to store {mod_name: [dependencies]}
-        self.default_game_root = r"C:\Program Files (x86)\Steam\steamapps\common\Victoria 2"
+        self.default_game_roots = [
+            os.path.join(os.path.dirname(__file__), "v2game.exe"),
+            r"C:\Program Files (x86)\Steam\steamapps\common\Victoria 2",
+            r"C:\GOG Games\Victoria II"
+        ]
+        self.game_root = None
+        for game_root in self.default_game_roots:
+            if os.path.exists(os.path.join(game_root, "v2game.exe")):
+                self.game_root = game_root
+                break
+        if not self.game_root:
+            QMessageBox.critical(self, "Error", "Could not find the game executable.")
+            sys.exit(1)
         self.config_file = "launcher_configs.json"
-        self.game_root = self.default_game_root
         self.settings_file = os.path.join(self.game_root, "mod", self.config_file)
         self.initUI()
         self.load_mods()
