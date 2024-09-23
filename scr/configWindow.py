@@ -179,11 +179,11 @@ class ConfigDialog(QDialog):
         self.sound_fx_slider.setValue(int(float(self.settings_manager.get_setting("sound_fx_volume"))))
         layout.addRow("Sound FX Volume:", self.sound_fx_slider)
 
-        self.music_volume_slider = QSlider(Qt.Orientation.Horizontal)
-        self.music_volume_slider.setMinimum(0)
-        self.music_volume_slider.setMaximum(100)
-        self.music_volume_slider.setValue(int(float(self.settings_manager.get_setting("ambient_volume"))))
-        layout.addRow("Ambient Volume:", self.music_volume_slider)
+        self.ambient_volume_slider = QSlider(Qt.Orientation.Horizontal)
+        self.ambient_volume_slider.setMinimum(0)
+        self.ambient_volume_slider.setMaximum(100)
+        self.ambient_volume_slider.setValue(int(float(self.settings_manager.get_setting("ambient_volume"))))
+        layout.addRow("Ambient Volume:", self.ambient_volume_slider)
 
         # Last Player
         self.lastplayer_input = QLineEdit(self.settings_manager.get_setting("lastplayer"))
@@ -229,7 +229,7 @@ class ConfigDialog(QDialog):
             'sound_fx_volume': f"{self.sound_fx_slider.value():.6f}",
             'music_volume': f"{self.music_volume_slider.value():.6f}",
             'master_volume': f"{self.master_volume_slider.value():.6f}",
-            'ambient_volume': f"{self.master_volume_slider.value():.6f}",
+            'ambient_volume': f"{self.ambient_volume_slider.value():.6f}",
             'lastplayer': self.lastplayer_input.text(),
             'autosave': self.autosave_input.currentText(),
             'debug_saves': "1" if self.debug_saves_checkbox.isChecked() else "0",
