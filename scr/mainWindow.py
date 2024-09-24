@@ -284,22 +284,27 @@ class GameLauncher(QWidget):
             print(f"User directory: {self.user_dir}")
         else:
             self.user_dir = ""
+        
         return checked_mods
 
     def start_game(self):
         selected_mods = self.get_checked_mods()
-        
+        import threading
         if selected_mods:
-            mod_files = [f"-mod=mod/{self.mod_files[mod]}" for mod in selected_mods]
+            mod_files = [f"-mod=mod/{self.mod_files[mod]['file']}" for mod in selected_mods]
             mods_argument = " ".join(mod_files)
             command = f'cd "{self.game_root}" && v2game.exe {mods_argument}'
             print(f"Starting game with command: {command}")
-            subprocess.run(command, shell=True)
+            thread = threading.Thread(target=subprocess.run, args=(command, ), kwargs={'shell': True})
+            thread.start()
             self.saveSettings()
+            self.close()
         else:
             print("No mods selected. Starting game without mods.")
             command = f'cd "{self.game_root}" && v2game.exe'
-            subprocess.run(command, shell=True)
+            thread = threading.Thread(target=subprocess.run, args=(command, ), kwargs={'shell': True})
+            thread.start()
+            self.close()
 
     def on_item_changed(self, item, column):
         if column == 0:
