@@ -3,7 +3,7 @@
 
 a = Analysis(
     ['launcher.py'],
-    pathex=['','/scr'],
+    pathex=['','/scr','/scr/icon.ico'],
     binaries=[],
     datas=[],
     hiddenimports=[],
