@@ -6,10 +6,11 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QMessageBox, QLabel,
     QPushButton, QTreeWidget, QTreeWidgetItem, QTreeWidgetItemIterator
 )
-from PyQt6.QtCore import Qt, QUrl
+from PyQt6.QtCore import Qt
 import subprocess
+import threading
 
-from PyQt6.QtGui import QDesktopServices, QIcon
+from PyQt6.QtGui import QIcon
 
 
 from scr.configWindow import *
@@ -289,7 +290,7 @@ class GameLauncher(QWidget):
 
     def start_game(self):
         selected_mods = self.get_checked_mods()
-        import threading
+        
         if selected_mods:
             mod_files = [f"-mod=mod/{self.mod_files[mod]['file']}" for mod in selected_mods]
             mods_argument = " ".join(mod_files)
