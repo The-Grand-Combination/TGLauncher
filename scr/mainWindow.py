@@ -9,16 +9,19 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QUrl
 import subprocess
 
-from PyQt6.QtGui import QDesktopServices
+from PyQt6.QtGui import QDesktopServices, QIcon
 
 
 from scr.configWindow import *
 from scr.presetmanagerWindow import *
+from scr.updatesWindow import *
 
 class GameLauncher(QWidget):
     def __init__(self):
 
         super().__init__()
+        self.setWindowIcon(QIcon('scr/icon.ico'))
+
         self.mod_files = {}  # Dictionary to store {display_name: filename}
         self.mod_dependencies = {}  # Dictionary to store {mod_name: [dependencies]}
         self.default_game_roots = [
@@ -121,16 +124,19 @@ class GameLauncher(QWidget):
 
     def preset_manager(self):
         """Opens the preset manager dialog."""
-        dialog = PresetManagerDialog(self.get_checked_mods(), self.settings_file, parent=self)
-        
-        if dialog.exec():
-            self.checked_mods = dialog.checked_mods
-            self.set_checked_mods(self.checked_mods)  # Apply the preset to the tree
+        try:
+            dialog = PresetManagerDialog(self.get_checked_mods(), self.settings_file, parent=self)
             
-            # Update the user_dir based on the newly checked mods
-            self.get_checked_mods()  # This will update the user_dir based on the checked mods
-            
-            self.saveSettings()  # Save the new preset
+            if dialog.exec():
+                self.checked_mods = dialog.checked_mods
+                self.set_checked_mods(self.checked_mods)  # Apply the preset to the tree
+                
+                # Update the user_dir based on the newly checked mods
+                self.get_checked_mods()  # This will update the user_dir based on the checked mods
+                
+                self.saveSettings()  # Save the new preset
+        except Exception as e:
+            QMessageBox.warning(self, 'Error', f"Error occurred in preset manager: {e}")
 
     def open_about_dialog(self):
         """Opens the about dialog with GitHub and Discord links."""
@@ -173,19 +179,21 @@ class GameLauncher(QWidget):
         about_dialog.exec()
 
 
-
     def check_for_updates(self):
-        """Opens the about dialog."""
-        # TODO: Implement the about dialog
-        print("About dialog not implemented yet.")
+        dialog = UpdateCheckerDialog(self.mod_files, os.path.join(self.game_root, "mod"))
+        dialog.exec()
+
 
     def open_config_dialog(self):
         """Opens the configuration dialog."""
-        dialog = ConfigDialog(self.game_root, self, self.user_dir)
-        if dialog.exec():
-            self.settings_file = os.path.join(self.game_root, "mod", self.config_file)
-            self.load_mods()
-            self.saveSettings()  # Save the new game root
+        try:
+            dialog = ConfigDialog(self.game_root, self, self.user_dir)
+            if dialog.exec():
+                self.settings_file = os.path.join(self.game_root, "mod", self.config_file)
+                self.load_mods()
+                self.saveSettings()  # Save the new game root
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"Error occurred in configuration dialog: {e}")
 
     def load_mods(self):
         mod_folder = os.path.join(self.game_root, "mod")
@@ -195,10 +203,10 @@ class GameLauncher(QWidget):
             self.mod_tree.clear()
             return
 
-        # First pass: Load all mods and their dependencies
         self.mod_files.clear()
         self.mod_dependencies.clear()
         self.mod_user_dirs = {}
+
         for file in os.listdir(mod_folder):
             if file.endswith(".mod"):
                 try:
@@ -207,6 +215,8 @@ class GameLauncher(QWidget):
                         name = ""
                         dependencies = []
                         user_dir = ""
+                        github = ""
+                        version = ""
                         for line in content.split('\n'):
                             if line.startswith("name"):
                                 name = line.split("=")[1].strip().strip('"')
@@ -215,20 +225,26 @@ class GameLauncher(QWidget):
                                 dependencies = [dep.strip().strip('"') for dep in deps_str.split(",") if dep.strip()]
                             elif line.startswith("user_dir"):
                                 user_dir = line.split("=")[1].strip().strip('"')
-                        
+                            elif line.startswith("github"):
+                                github = line.split("=")[1].strip().strip('"')
+                            elif line.startswith("version"):
+                                version = line.split("=")[1].strip().strip('"')
+
                         if name:
-                            self.mod_files[name] = file
+                            self.mod_files[name] = {
+                                'file': file,
+                                'github': github if github else None,
+                                'release': version if version else None
+                            }
                             self.mod_dependencies[name] = dependencies
                             self.mod_user_dirs[name] = user_dir
                 except Exception as e:
                     print(f"Error reading mod file {file}: {e}")
 
-        # Second pass: Create tree structure
-        self.mod_tree.blockSignals(True)  # Prevent signals during setup
+        self.mod_tree.blockSignals(True)
         self.mod_tree.clear()
         mod_items = {}
 
-        # Create all mod items first
         for mod_name in self.mod_files.keys():
             item = QTreeWidgetItem()
             item.setText(0, mod_name)
@@ -236,23 +252,19 @@ class GameLauncher(QWidget):
             item.setCheckState(0, Qt.CheckState.Unchecked)
             mod_items[mod_name] = item
 
-        # Organize mods based on dependencies
         for mod_name, dependencies in self.mod_dependencies.items():
             if dependencies:
                 for dep in dependencies:
                     if dep in mod_items:
                         mod_items[dep].addChild(mod_items[mod_name])
-                        break  # Assume first dependency as parent
+                        break
                 else:
-                    # No valid dependency found, add as top-level
                     self.mod_tree.addTopLevelItem(mod_items[mod_name])
             else:
-                # No dependencies, add as top-level
                 self.mod_tree.addTopLevelItem(mod_items[mod_name])
 
         self.mod_tree.expandAll()
-        self.mod_tree.blockSignals(False)  # Re-enable signals
-
+        self.mod_tree.blockSignals(False)
 
     def get_checked_mods(self):
         checked_mods = []

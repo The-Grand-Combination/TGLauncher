@@ -195,6 +195,10 @@ class ConfigDialog(QDialog):
         self.clean_cache_button.clicked.connect(self.clear_cache)
         layout.addRow(self.clean_cache_button)
 
+        self.open_saves_button = QPushButton("Open Save Folder")
+        self.open_saves_button.clicked.connect(self.open_saves)
+        layout.addRow(self.open_saves_button)
+
         # Buttons (OK, Cancel)
         button_layout = QHBoxLayout()
         self.ok_button = QPushButton("OK")
@@ -271,3 +275,17 @@ class ConfigDialog(QDialog):
             print("Cache cleared.")
         else:
             print("Cache clear cancelled.")
+
+    def open_saves(self):
+        saves_folder = os.path.join(
+            os.path.expanduser("~"),
+            "Documents",
+            "Paradox Interactive",
+            "Victoria II",
+            self.user_dir,
+            "save games"
+        )
+        if not os.path.exists(saves_folder):
+            os.mkdir(saves_folder)
+        else:
+            os.startfile(saves_folder)
