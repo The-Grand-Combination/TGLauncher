@@ -3,7 +3,7 @@ import os
 import json
 import sys
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QMessageBox, QLabel,
+    QWidget, QVBoxLayout, QHBoxLayout, QMessageBox, QLabel, QFileDialog,
     QPushButton, QTreeWidget, QTreeWidgetItem, QTreeWidgetItemIterator
 )
 from PyQt6.QtCore import Qt
@@ -12,38 +12,61 @@ import threading
 
 from PyQt6.QtGui import QIcon
 
-
 from scr.configWindow import *
 from scr.presetmanagerWindow import *
 from scr.updatesWindow import *
 
 class GameLauncher(QWidget):
-    def __init__(self):
 
+    def __init__(self):
         super().__init__()
         self.setWindowIcon(QIcon('scr/icon.ico'))
 
         self.mod_files = {}  # Dictionary to store {display_name: filename}
         self.mod_dependencies = {}  # Dictionary to store {mod_name: [dependencies]}
+        
+        # Get the directory of the running executable
+        application_path = os.path.dirname(sys.argv[0])
+        print(f"Application path: {application_path}")  # Debug print
+
         self.default_game_roots = [
-            os.path.join(os.path.dirname(__file__), "v2game.exe"),
+            application_path,
+            os.path.dirname(application_path),
             r"C:\Program Files (x86)\Steam\steamapps\common\Victoria 2",
+            r"D:\Program Files (x86)\Steam\steamapps\common\Victoria 2",
+            r"D:\GOG Games\Victoria II",
             r"C:\GOG Games\Victoria II"
         ]
+        
         self.game_root = None
         for game_root in self.default_game_roots:
-            if os.path.exists(os.path.join(game_root, "v2game.exe")):
+            executable_path = os.path.join(game_root, "v2game.exe")
+            print(f"Checking: {executable_path}")  # Debug print
+            if os.path.exists(executable_path):
                 self.game_root = game_root
+                print(f"Found game root: {self.game_root}")  # Debug print
                 break
+        
         if not self.game_root:
-            QMessageBox.critical(self, "Error", "Could not find the game executable. Place this launcher inside your Victoria 2 installation folder.")
-            sys.exit(1)
+            QMessageBox.critical(self, "Error", f"Could not find the game executable. Pleaase place this .exe in your Victoria II root folder, besides the v2game.exe file.")
+            #self.game_root = self.get_game_root_from_user()
+            if not self.game_root:
+                sys.exit(1)
+        
         self.config_file = "launcher_configs.json"
         self.settings_file = os.path.join(self.game_root, "mod", self.config_file)
         self.initUI()
         self.load_mods()
         self.loadSettings()
 
+    def get_game_root_from_user(self):
+        
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        folder = QFileDialog.getExistingDirectory(self, "Select Victoria 2 Installation Folder", options=options)
+        if folder and os.path.exists(os.path.join(folder, "v2game.exe")):
+            return folder
+        return None
     def initUI(self):
         self.setWindowTitle('The Greater Launcher')
         self.setGeometry(300, 300, 300, 400)
@@ -183,7 +206,6 @@ class GameLauncher(QWidget):
     def check_for_updates(self):
         dialog = UpdateCheckerDialog(self.mod_files, os.path.join(self.game_root, "mod"))
         dialog.exec()
-
 
     def open_config_dialog(self):
         """Opens the configuration dialog."""
