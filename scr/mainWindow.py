@@ -161,7 +161,7 @@ class GameLauncher(QWidget):
                 # Update the user_dir based on the newly checked mods
                 self.get_checked_mods()  # This will update the user_dir based on the checked mods
                 
-                self.saveSettings()  # Save the new preset
+                self.saveCheckedmods()  # Save the new preset
         except Exception as e:
             QMessageBox.warning(self, 'Error', f"Error occurred in preset manager: {e}")
 
@@ -177,6 +177,7 @@ class GameLauncher(QWidget):
             about_text = QLabel(
                 "<h3 style='text-align: center;'>The Greater Launcher</h3>"
                 "<p style='text-align: center;'>Developed by the TGC Modding Team.</p>"
+                "<p style='text-align: center;'>v1.2.0</p>"
                 "<p style='text-align: center;'><a href='https://github.com/The-Grand-Combination/TGLauncher'>GitHub Repository</a><br>"
                 "<a href='https://discord.gg/the-grand-combination-689466155978588176'>Join us on Discord</a></p>"
             )
@@ -210,12 +211,7 @@ class GameLauncher(QWidget):
         """Opens the configuration dialog."""
         try:
             dialog = ConfigDialog(self.game_root, self, self.user_dir)
-            if dialog.exec():
-                #self.settings_file = os.path.join(self.game_root, "mod", self.config_file)
-                #self.load_mods()
-                #self.set_checked_mods(self.get_checked_mods())
-                #self.saveSettings()  # Save the new game root
-                pass
+            dialog.exec()
         except Exception as e:
             print(e)
             QMessageBox.warning(self, "Error", f"Error occurred in the configuration tab: {e}")
@@ -326,7 +322,7 @@ class GameLauncher(QWidget):
             try:
                 thread = threading.Thread(target=subprocess.run, args=(command, ), kwargs={'shell': True})
                 thread.start()
-                self.saveSettings()
+                self.saveCheckedmods()
                 self.close()
             except Exception as e:
                 QMessageBox.warning(self, 'Error', f"An error occurred when starting the game: {e}")
@@ -345,7 +341,7 @@ class GameLauncher(QWidget):
             try:
                 check_state = item.checkState(0)
                 self.mod_tree.blockSignals(True)
-                self.saveSettings()
+                self.saveCheckedmods()
                 self.mod_tree.blockSignals(False)
             except Exception as e:
                 QMessageBox.warning(self, 'Error', f"An error occurred when changing the mod state: {e}")
@@ -380,7 +376,7 @@ class GameLauncher(QWidget):
         except Exception as e:
             QMessageBox.warning(self, 'Error', f"Error setting user directory: {e}")
 
-    def saveSettings(self):
+    def saveCheckedmods(self):
         checked_mods = self.get_checked_mods()
         settings = {}
 
