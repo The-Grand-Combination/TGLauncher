@@ -313,6 +313,29 @@ class GameLauncher(QWidget):
 
     def start_game(self):
         selected_mods = self.get_checked_mods()
+
+        with open(self.settings_file, 'r') as file:
+            launcher_config = json.load(file)
+
+        settings_path = os.path.join(
+            os.path.expanduser("~"),
+            "Documents",
+            "Paradox Interactive",
+            "Victoria II",
+            self.user_dir,
+            "settings.txt"
+        )
+
+        with open(settings_path, 'r') as file:
+            lines = file.readlines()
+
+        with open(settings_path, 'w') as file:
+            for i in range(len(lines)):
+                if lines[i].startswith("update_time"):
+                    lines[i] = f"update_time={float(launcher_config['update_time']):.6f}\n"
+
+            file.writelines(lines)
+
         
         if selected_mods:
             mod_files = [f"-mod=mod/{self.mod_files[mod]['file']}" for mod in selected_mods]

@@ -1,5 +1,6 @@
 import os
 import shutil
+import json
 
 class SettingsManager:
     def __init__(self, settings_file):
@@ -92,7 +93,6 @@ class SettingsManager:
         with open(self.settings_file, 'w') as file:
             file.write(default_settings)
 
-
 from PyQt6.QtWidgets import (
     QHBoxLayout, QVBoxLayout, QDialog, QFormLayout, QLineEdit, QSlider,
     QPushButton, QMessageBox, QCheckBox, QComboBox
@@ -114,7 +114,9 @@ class ConfigDialog(QDialog):
             self.user_dir,
             "settings.txt"
         )
+        self.game_root = current_root
         self.user_dir = user_dir
+        self.launcher_settings_file = os.path.join(self.game_root, "mod", "launcher_configs.json")
         self.settings_manager = SettingsManager(self.settings_path)
         self.initUI()
 
@@ -190,6 +192,15 @@ class ConfigDialog(QDialog):
         self.debug_saves_checkbox.setChecked(self.settings_manager.get_setting("debug_saves", "0") == "1")
         layout.addRow(self.debug_saves_checkbox)
 
+        with open(self.launcher_settings_file, 'r') as file:
+            launcher_config = json.load(file)
+
+        self.update_time_slider = QSlider(Qt.Orientation.Horizontal)
+        self.update_time_slider.setMinimum(1)
+        self.update_time_slider.setMaximum(100)
+        self.update_time_slider.setValue(int(float(launcher_config["update_time"])))
+        layout.addRow("Update Time:", self.update_time_slider)
+
         # Clean Cache
         self.clean_cache_button = QPushButton("Clear Cache")
         self.clean_cache_button.clicked.connect(self.clear_cache)
@@ -227,9 +238,8 @@ class ConfigDialog(QDialog):
             '	x': self.resolution_input.currentText().split('x')[0],
             '	y': self.resolution_input.currentText().split('x')[1],
         }
-        
+
         # Read the existing settings
-        lines = []
         with open(self.settings_path, 'r') as file:
             lines = file.readlines()
 
@@ -243,6 +253,14 @@ class ConfigDialog(QDialog):
         # Write the updated lines back to the file
         with open(self.settings_path, 'w') as file:
             file.writelines(lines)
+
+        # Update the update_time in the launcher config file
+        with open(self.launcher_settings_file, 'r') as file:
+            launcher_config = json.load(file)
+
+        launcher_config["update_time"] = f"{self.update_time_slider.value()}"
+        with open(self.launcher_settings_file, 'w') as file:
+            json.dump(launcher_config, file, indent=4)
 
         self.accept()
 
@@ -289,3 +307,7 @@ class ConfigDialog(QDialog):
             os.mkdir(saves_folder)
         else:
             os.startfile(saves_folder)
+
+
+
+
