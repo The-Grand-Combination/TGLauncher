@@ -126,6 +126,9 @@ class ConfigDialog(QDialog):
 
         print(self.user_dir)
 
+        with open(self.launcher_settings_file, 'r') as file:
+            launcher_config = json.load(file)
+        
         # Screen Resolution
         self.resolution_input = QComboBox()
         self.resolution_input.addItem("3840x2160")
@@ -148,6 +151,11 @@ class ConfigDialog(QDialog):
         self.borderless_checkbox.setChecked(self.settings_manager.get_setting("borderless") == "yes")
         layout.addRow(self.fullscreen_checkbox)
         layout.addRow(self.borderless_checkbox)
+
+        #Intro
+        self.skip_intro_checkbox = QCheckBox("Skip Intro")
+        self.skip_intro_checkbox.setChecked(int(launcher_config["skipintro"]))
+        layout.addRow(self.skip_intro_checkbox)
 
         # Sound Volume
         self.master_volume_slider = QSlider(Qt.Orientation.Horizontal)
@@ -192,8 +200,9 @@ class ConfigDialog(QDialog):
         self.debug_saves_checkbox.setChecked(self.settings_manager.get_setting("debug_saves", "0") == "1")
         layout.addRow(self.debug_saves_checkbox)
 
-        with open(self.launcher_settings_file, 'r') as file:
-            launcher_config = json.load(file)
+        self.realtime_mode_checkbox = QCheckBox("Realtime Priority Mode")
+        self.realtime_mode_checkbox.setChecked(int(launcher_config["realtime"]))
+        layout.addRow(self.realtime_mode_checkbox)
 
         self.update_time_slider = QSlider(Qt.Orientation.Horizontal)
         self.update_time_slider.setMinimum(1)
@@ -222,8 +231,8 @@ class ConfigDialog(QDialog):
 
         layout.addRow(button_layout)
         main_layout.addLayout(layout)
-        self.setLayout(main_layout)
-
+        self.setLayout(main_layout)    
+        
     def save_settings(self):
         updated_settings = {
             'fullScreen': "yes" if self.fullscreen_checkbox.isChecked() else "no",
@@ -259,8 +268,12 @@ class ConfigDialog(QDialog):
             launcher_config = json.load(file)
 
         launcher_config["update_time"] = f"{self.update_time_slider.value()}"
+        launcher_config["realtime"] = "1" if self.realtime_mode_checkbox.isChecked() else "0"
+        launcher_config["skipintro"] = "1" if self.skip_intro_checkbox.isChecked() else "0"
         with open(self.launcher_settings_file, 'w') as file:
             json.dump(launcher_config, file, indent=4)
+
+        self.skip_intro_change(self.skip_intro_checkbox.isChecked())
 
         self.accept()
 
@@ -308,6 +321,14 @@ class ConfigDialog(QDialog):
         else:
             os.startfile(saves_folder)
 
-
+    def skip_intro_change(self, checked):
+        movie_folder = os.path.join(self.game_root, "movies")
+        disabled_folder = os.path.join(self.game_root, "moviesdisabled")
+        if checked:
+            if os.path.exists(movie_folder):
+                os.rename(movie_folder, disabled_folder)
+        else:
+            if os.path.exists(disabled_folder):
+                os.rename(disabled_folder, movie_folder)
 
 

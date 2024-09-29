@@ -55,6 +55,15 @@ class GameLauncher(QWidget):
         
         self.config_file = "launcher_configs.json"
         self.settings_file = os.path.join(self.game_root, "mod", self.config_file)
+        if not os.path.exists(self.settings_file):
+            with open(self.settings_file, 'w') as file:
+                json.dump({
+                    "checked_mods": [],
+                    "update_time": 1,
+                    "priority": 0,
+                    "skipintro": 0,
+                    "presets": {}
+                }, file, indent=4)
         self.initUI()
         self.load_mods()
         self.loadSettings()
@@ -336,28 +345,33 @@ class GameLauncher(QWidget):
 
             file.writelines(lines)
 
-        
         if selected_mods:
             mod_files = [f"-mod=mod/{self.mod_files[mod]['file']}" for mod in selected_mods]
             mods_argument = " ".join(mod_files)
-            command = f'cd "{self.game_root}" && v2game.exe {mods_argument}'
-            print(f"Starting game with command: {command}")
-            try:
-                thread = threading.Thread(target=subprocess.run, args=(command, ), kwargs={'shell': True})
-                thread.start()
-                self.saveCheckedmods()
-                self.close()
-            except Exception as e:
-                QMessageBox.warning(self, 'Error', f"An error occurred when starting the game: {e}")
+            game_command = f'v2game.exe {mods_argument}'
+            print(f"Starting game with mods: {game_command}")
         else:
-            print("No mods selected. Starting game without mods.")
-            command = f'cd "{self.game_root}" && v2game.exe'
-            try:
-                thread = threading.Thread(target=subprocess.run, args=(command, ), kwargs={'shell': True})
-                thread.start()
-                self.close()
-            except Exception as e:
-                QMessageBox.warning(self, 'Error', f"An error occurred when starting the game: {e}")
+            game_command = 'v2game.exe'
+            print("Starting game without mods.")
+
+        priority = 'realtime' if launcher_config['realtime'] == '1' else 'high'
+        full_command = (
+            f'cd /d "{self.game_root}" && '
+            f'start "Victoria II" /{priority} /affinity 1 /node 0 '
+            f'{game_command}'
+        )
+
+        print(full_command)
+
+        try:
+            thread = threading.Thread(target=subprocess.run, args=(full_command,), kwargs={'shell': True})
+            thread.start()
+            if selected_mods:
+                self.saveCheckedmods()
+            self.close()
+        except Exception as e:
+            QMessageBox.warning(self, 'Error', f"An error occurred when starting the game: {e}")
+
 
     def on_item_changed(self, item, column):
         if column == 0:
