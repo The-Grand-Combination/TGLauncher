@@ -186,7 +186,7 @@ class GameLauncher(QWidget):
             about_text = QLabel(
                 "<h3 style='text-align: center;'>The Greater Launcher</h3>"
                 "<p style='text-align: center;'>Developed by the TGC Modding Team.</p>"
-                "<p style='text-align: center;'>v1.2.0</p>"
+                "<p style='text-align: center;'>v1.2.1</p>"
                 "<p style='text-align: center;'><a href='https://github.com/The-Grand-Combination/TGLauncher'>GitHub Repository</a><br>"
                 "<a href='https://discord.gg/the-grand-combination-689466155978588176'>Join us on Discord</a></p>"
             )

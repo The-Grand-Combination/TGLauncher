@@ -55,11 +55,11 @@ exe = EXE(
                         u'040904B0',
                         [StringStruct(u'CompanyName', u'TGC Modding Team'),
                          StringStruct(u'FileDescription', u'The Greater Launcher'),
-                         StringStruct(u'FileVersion', u'1.2.0'),
+                         StringStruct(u'FileVersion', u'1.2.1'),
                          StringStruct(u'InternalName', u'TGLauncher'),
                          StringStruct(u'OriginalFilename', u'The Greater Launcher.exe'),
                          StringStruct(u'ProductName', u'The Greater Launcher'),
-                         StringStruct(u'ProductVersion', u'1.2.0')])
+                         StringStruct(u'ProductVersion', u'1.2.1')])
                 ]
             ),
         ]
