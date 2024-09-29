@@ -60,7 +60,7 @@ class GameLauncher(QWidget):
                 json.dump({
                     "checked_mods": [],
                     "update_time": 1,
-                    "priority": 0,
+                    "realtime": 0,
                     "skipintro": 0,
                     "presets": {}
                 }, file, indent=4)
